@@ -1,24 +1,28 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import CalculationHistory from './CalculationHistory';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from './ui/button';
 
 const Calculator: React.FC = () => {
+  const { showToast, showError } = useToast();
+
   const [display, setDisplay] = useState('');
   const [history, setHistory] = useState<string[]>([]);
-  const { toast } = useToast();
 
   const handleButtonClick = (value: string) => {
     if (value === 'C') {
       setDisplay('');
+      showToast('Cleared');
     } else if (value === '=') {
       try {
+        // Evaluating JavaScript code from user input is dangerous, here eval is still used for simplicity
+        // Consider using a math library for safe evaluation
         const result = eval(display);
         setDisplay(String(result));
-        setHistory([...history, `${display} = ${result}`]);
-        toast({ title: 'Calculation Successful', description: `${display} = ${result}` });
+        setHistory([...history, display + ' = ' + result]);
       } catch {
         setDisplay('Error');
-        toast({ title: 'Calculation Failed', description: 'Invalid expression' });
+        showError('Invalid operation');
       }
     } else {
       setDisplay(display + value);
@@ -26,25 +30,15 @@ const Calculator: React.FC = () => {
   };
 
   const buttons = [
-    '7', '8', '9', '/', '(', '4', '5', '6', '*', ')', '1', '2', '3', '-', '⌫', '0', '.', '=', '+', 'C', 'sin', 'cos', 'tan'
+    '7', '8', '9', '/', 'Sin',
+    '4', '5', '6', '*', 'Cos',
+    '1', '2', '3', '-', 'Tan',
+    '0', '.', '=', '+', 'C'
   ];
-
-  const renderHistory = () => (
-    <div style={{minWidth: "200px", marginLeft: "1rem", padding: "1rem", border: "1px solid var(--border)", borderRadius:"var(--radius)", background:"var(--background)" }} className="h-full overflow-y-auto">
-      <h2 className="text-xl mb-2">Calculation History</h2>
-      <ul style={{listStyleType: "none", paddingLeft:"0"}}>
-        {history.map((entry, index) => (
-          <li key={index} className="mb-2">
-            {entry}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
 
   return (
     <div className="flex">
-      <div className="bg-white p-4 rounded shadow-lg max-w-sm w-full">
+      <div className="bg-white p-4 rounded shadow-lg w-full max-w-sm">
         <div className="p-2 text-right font-mono text-xl mb-2 border rounded bg-gray-100">
           {display}
         </div>
@@ -56,7 +50,7 @@ const Calculator: React.FC = () => {
           ))}
         </div>
       </div>
-      {renderHistory()}
+      <CalculationHistory history={history} />
     </div>
   );
 };
